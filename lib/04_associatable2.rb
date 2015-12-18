@@ -6,15 +6,20 @@ module Associatable
   # Remember to go back to 04_associatable to write ::assoc_options
 
   class HasThroughOptions
-    attr_accessor :through, :source, :class_name, :self_class
+    attr_accessor :through, :source, :self_class
 
     def initialize(through, source, self_class)
-      byebug if self_class.nil?
       @through = through
       @source = source
-      through_class = self_class.assoc_options[through].class_name
-      @class_name = through_class.constantize.assoc_options[source].class_name
+      # through_class = self_class.assoc_options[through].class_name
+      # @class_name = through_class.constantize.assoc_options[source].class_name
       @self_class = self_class
+    end
+
+    def class_name
+      through_class = self_class.assoc_options[through].class_name
+      @class_name ||= through_class.constantize.assoc_options[source].class_name
+      # @class_name ||= self_class.assoc_options[source].class_name
     end
   end
 
@@ -27,13 +32,12 @@ module Associatable
 
       path = [h_th_options]
       until path.all?{|options| options.is_a?(BelongsToOptions)}
-        byebug
         path = path.flat_map do |options|
           if options.is_a?(BelongsToOptions)
             [options]
           elsif options.is_a?(HasThroughOptions)
             through = options.self_class.assoc_options[options.through]
-            source_class = options.class_name.constantize
+            source_class = through.class_name.constantize
             source = source_class.assoc_options[options.source]
             [through, source]
           else
@@ -42,9 +46,12 @@ module Associatable
         end
       end
 
+
       their_table = path.last.table_name
       me = self.id
       my_table = self.class.table_name
+
+
 
       joins = path.inject(["", my_table]) do |joins_pair, be_options|
         last_table = joins_pair.last
