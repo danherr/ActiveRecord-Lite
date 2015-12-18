@@ -10,20 +10,30 @@ CREATE TABLE humans (
   id INTEGER PRIMARY KEY,
   fname VARCHAR(255) NOT NULL,
   lname VARCHAR(255) NOT NULL,
-  house_id INTEGER,
-
-  FOREIGN KEY(house_id) REFERENCES human(id)
+  house_id INTEGER
 );
 
 CREATE TABLE houses (
   id INTEGER PRIMARY KEY,
-  address VARCHAR(255) NOT NULL
+  address VARCHAR(255) NOT NULL,
+  country_id INTEGER
+);
+
+CREATE TABLE countries (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR(255) NOT NULL
 );
 
 INSERT INTO
-  houses (id, address)
+  countries (id, name)
 VALUES
-  (1, "26th and Guerrero"), (2, "Dolores and Market");
+  (1, "United States"),
+  (2, "New Fake Island");
+
+INSERT INTO
+  houses (id, address, country_id)
+VALUES
+  (1, "26th and Guerrero", 1), (2, "Dolores and Market", 2);
 
 INSERT INTO
   humans (id, fname, lname, house_id)

@@ -1,4 +1,5 @@
 require_relative '03_associatable'
+require 'byebug'
 
 # Phase IV
 module Associatable
@@ -11,7 +12,8 @@ module Associatable
       byebug if self_class.nil?
       @through = through
       @source = source
-      @class_name = self_class.assoc_options[through].class_name
+      through_class = self_class.assoc_options[through].class_name
+      @class_name = through_class.constantize.assoc_options[source].class_name
       @self_class = self_class
     end
   end
@@ -25,6 +27,7 @@ module Associatable
 
       path = [h_th_options]
       until path.all?{|options| options.is_a?(BelongsToOptions)}
+        byebug
         path = path.flat_map do |options|
           if options.is_a?(BelongsToOptions)
             [options]
@@ -34,7 +37,7 @@ module Associatable
             source = source_class.assoc_options[options.source]
             [through, source]
           else
-            raise "Bad thing happened."
+            raise "Found incorrect associations in the path."
           end
         end
       end
