@@ -34,7 +34,7 @@ class SQLObject
   end
 
   def self.table_name
-    @table_name ||= "cats"
+    @table_name ||= self.name.downcase.pluralize
   end
 
   # ::all: return an array of all the records in the DB
