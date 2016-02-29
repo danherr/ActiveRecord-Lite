@@ -1,4 +1,4 @@
-require_relative '04_associatable2'
+require_relative 'associatable'
 
 
 
@@ -38,5 +38,5 @@ class Country < SQLObject
 
   has_many :houses
 
-finalize!
+  finalize!
 end
