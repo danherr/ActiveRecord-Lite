@@ -1,4 +1,4 @@
-require_relative 'associatable'
+require_relative './lib/associatable'
 
 DBConnection.reset
 
