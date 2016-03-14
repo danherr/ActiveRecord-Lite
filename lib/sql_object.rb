@@ -62,7 +62,7 @@ class SQLObject
         id = ?
     SQL
       .first
-
+      
     me ? self.new(me) : nil
   end
 

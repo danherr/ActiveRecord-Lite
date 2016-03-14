@@ -5,7 +5,7 @@ describe 'Searchable' do
   after(:each) { DBConnection.reset }
 
   before(:all) do
-    class Cat < SQLObject
+    class Pet < SQLObject
       finalize!
     end
 
@@ -17,11 +17,11 @@ describe 'Searchable' do
   end
 
   it '#where searches with single criterion' do
-    cats = Cat.where(name: 'Breakfast')
-    cat = cats.first
+    pets = Pet.where(name: 'Nymeria')
+    pet = pets.first
 
-    expect(cats.length).to eq(1)
-    expect(cat.name).to eq('Breakfast')
+    expect(pets.length).to eq(1)
+    expect(pet.name).to eq('Nymeria')
   end
 
   it '#where can return multiple objects' do
@@ -30,15 +30,15 @@ describe 'Searchable' do
   end
 
   it '#where searches with multiple criteria' do
-    humans = Human.where(fname: 'Matt', house_id: 1)
+    humans = Human.where(name: 'Rob', house_id: 1)
     expect(humans.length).to eq(1)
 
     human = humans[0]
-    expect(human.fname).to eq('Matt')
+    expect(human.name).to eq('Rob')
     expect(human.house_id).to eq(1)
   end
 
   it '#where returns [] if nothing matches the criteria' do
-    expect(Human.where(fname: 'Nowhere', lname: 'Man')).to eq([])
+    expect(Human.where(name: 'Jaquen Hagar')).to eq([])
   end
 end
