@@ -30,7 +30,7 @@ Any model of a class inherited from SQLObject will have the following instance m
 
 In addition to this, it will have reader and writer methods for each column in its database table.
 
-## Associations
+# Associations
 
 There are three types of associations: belongs_to, has_one and has_many. These express the foreign key realtionships between the models. When an association is defined, it stores the information needed to construct a join table. Each association takes a name and an optional hash of options. It will add an instance method with the given name to its model.
 
@@ -68,7 +68,7 @@ Note that the chain of associations defined by a `has_one` with the `through` op
 
 This supports the 'one' side of a many-to-one relationship. (Currently only a single step one.) Its name should be plural. It has the following options:
 
-* `class_name` - The name of the association changed into class-name style and made singular.
+* `class_name` - The name of the associated model. This defaluts to the name of the association changed into class-name style and made singular.
 
 * `primary_key` - The column in the foreign table. This defaults to `'id'`.
 
