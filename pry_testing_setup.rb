@@ -6,10 +6,9 @@ class Pet < SQLObject
   belongs_to :owner, class_name: "Human", foreign_key: :owner_id
   belongs_to :species
   
-  has_one_through :house, :owner, :house
-
-  has_one_through :kingdom, :owner, :kingdom
-  has_one_through :continent, :kingdom, :continent
+  has_one :house, through: :owner, source: :house
+  has_one :kingdom, through: :owner  
+  has_one :continent, through: :kingdom
 
   finalize!
 end
@@ -20,7 +19,7 @@ class Human < SQLObject
   has_many :pets, foreign_key: :owner_id
   belongs_to :house
 
-  has_one_through :kingdom, :house, :kingdom
+  has_one :kingdom, through: :house
 
   finalize!
 end
@@ -30,7 +29,7 @@ class House < SQLObject
 
   belongs_to :kingdom
 
-  has_one_through :continent, :kingdom, :continent
+  has_one :continent, through: :kingdom
 
   finalize!
 end

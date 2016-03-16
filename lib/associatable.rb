@@ -2,12 +2,11 @@ require_relative 'searchable'
 require 'active_support/inflector'
 require 'byebug'
 
-# Phase IIIa
 class AssocOptions
   attr_accessor(
     :foreign_key,
     :class_name,
-    :primary_key
+    :primary_key,
   )
 
   def model_class
@@ -27,6 +26,14 @@ class BelongsToOptions < AssocOptions
   end
 end
 
+class HasOneOptions < AssocOptions
+  def initialize(name, self_class_name, options = {})
+    @foreign_key = options[:foreign_key] || (self_class_name.to_s.downcase + "_id").to_sym
+    @class_name = options[:class_name] || name.to_s.camelcase
+    @primary_key = options[:primary_key] || :id
+  end
+end
+
 class HasManyOptions < AssocOptions
   def initialize(name, self_class_name, options = {})
     @foreign_key = options[:foreign_key] || (self_class_name.to_s.downcase + "_id").to_sym
@@ -34,6 +41,27 @@ class HasManyOptions < AssocOptions
     @primary_key = options[:primary_key] || :id
   end
 end
+
+class HasOneThroughOptions
+  attr_accessor :through, :source, :self_class
+  
+  def initialize(name, self_class, options)
+    @through = options[:through]
+    @source = options[:source] || name.pluralize
+    # through_class = self_class.assoc_options[through].class_name
+    # @class_name = through_class.constantize.assoc_options[source].class_name
+    @self_class = self_class
+  end
+  
+  def class_name
+    @through_class = self_class.assoc_options[through].class_name
+    @class_name ||= through_class.constantize.assoc_options[source].class_name
+    # @class_name ||= self_class.assoc_options[source].class_name
+  end
+
+end
+
+
 
 module Associatable
 
@@ -66,17 +94,32 @@ module Associatable
     end
   end
 
+  def has_one(name, options = {})
+    if options[:through]
+      has_one_through(name, options)
+    else
+
+      ## put the one-step has-one here.
+      
+    end
+  end
+
   def has_many(name, options = {})
-    hm_options = HasManyOptions.new(name, self.name, options)
+    if options[:through]
+      has_many_through(name, options)
 
-    define_method(name.to_sym) do
-      their_table = hm_options.table_name
-      their_key = hm_options.foreign_key
-      my_key = hm_options.primary_key
-      me = self.id
-      my_table = self.class.table_name
-
-      result = DBConnection.execute(<<-SQL)
+    else
+      
+      hm_options = HasManyOptions.new(name, self.name, options)
+      
+      define_method(name.to_sym) do
+        their_table = hm_options.table_name
+        their_key = hm_options.foreign_key
+        my_key = hm_options.primary_key
+        me = self.id
+        my_table = self.class.table_name
+        
+        result = DBConnection.execute(<<-SQL)
         SELECT
           #{their_table}.*
         FROM
@@ -87,36 +130,18 @@ module Associatable
           #{my_table}.id = #{me}
       SQL
 
-      result.map{ |result| hm_options.model_class.new(result)}
+        result.map{ |result| hm_options.model_class.new(result)}
+      end
     end
   end
 
   def assoc_options
     @assoc_options ||= {}
   end
-
   
-  class HasThroughOptions
-    attr_accessor :through, :source, :self_class
+  def has_one_through(name, options)
 
-    def initialize(through, source, self_class)
-      @through = through
-      @source = source
-      # through_class = self_class.assoc_options[through].class_name
-      # @class_name = through_class.constantize.assoc_options[source].class_name
-      @self_class = self_class
-    end
-
-    def class_name
-      through_class = self_class.assoc_options[through].class_name
-      @class_name ||= through_class.constantize.assoc_options[source].class_name
-      # @class_name ||= self_class.assoc_options[source].class_name
-    end
-  end
-
-  def has_one_through(name, through_name, source_name)
-
-    h_th_options = HasThroughOptions.new(through_name, source_name, self)
+    h_th_options = HasOneThroughOptions.new(name, self, options)
     self.assoc_options[name] = h_th_options
 
     define_method(name.to_sym) do
@@ -126,7 +151,7 @@ module Associatable
         path = path.flat_map do |options|
           if options.is_a?(BelongsToOptions)
             [options]
-          elsif options.is_a?(HasThroughOptions)
+          elsif options.is_a?(HasOneThroughOptions)
             through = options.self_class.assoc_options[options.through]
             source_class = through.class_name.constantize
             source = source_class.assoc_options[options.source]
@@ -177,7 +202,3 @@ module Associatable
 
 end
 
-class SQLObject
-
-  extend Associatable
-end

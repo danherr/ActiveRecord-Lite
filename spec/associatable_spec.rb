@@ -82,7 +82,12 @@ describe 'Associatable' do
 
   before(:all) do
     class Pet < SQLObject
-      belongs_to :human, foreign_key: :owner_id
+      belongs_to :owner, foreign_key: :owner_id, class_name: "Human"
+      belongs_to :species
+
+      has_one :house, through: :owner, source: :house
+      has_one :kingdom, through: :house, source: :kingdom
+
 
       finalize!
     end
@@ -98,8 +103,18 @@ describe 'Associatable' do
 
     class House < SQLObject
       has_many :humans
+      belongs_to :kingdom
 
       finalize!
+    end
+
+    class Kingdom < SQLObject
+      has_many :houses
+      belongs_to :continent
+    end
+
+    class Continent < SQLObject
+      has_many :kingdoms
     end
   end
 
@@ -108,8 +123,8 @@ describe 'Associatable' do
     let(:arya) { Human.find(1) }
 
     it 'fetches `human` from `Pet` correctly' do
-      expect(nymeria).to respond_to(:human)
-      human = nymeria.human
+      expect(nymeria).to respond_to(:owner)
+      human = nymeria.owner
 
       expect(human).to be_instance_of(Human)
       expect(human.name).to eq('Arya')
@@ -125,7 +140,7 @@ describe 'Associatable' do
 
     it 'returns nil if no associated object' do
       stray_cat = Pet.find(6)
-      expect(stray_cat.human).to eq(nil)
+      expect(stray_cat.owner).to eq(nil)
     end
   end
 
@@ -163,46 +178,6 @@ describe 'Associatable' do
     end
   end
 
-
-describe 'Associatable' do
-  before(:each) { DBConnection.reset }
-  after(:each) { DBConnection.reset }
-
-  before(:all) do
-    class Pet < SQLObject
-      belongs_to :human, foreign_key: :owner_id
-      belongs_to :species
-
-      finalize!
-    end
-
-    class Human < SQLObject
-      self.table_name = 'humans'
-
-      has_many :pets, foreign_key: :owner_id
-      belongs_to :house
-
-      finalize!
-    end
-
-    class House < SQLObject
-      has_many :humans
-      belongs_to :kingdom
-
-      finalize!
-    end
-
-    class Kingdom < SQLObject
-      has_many :houses
-      belongs_to :continent
-    end
-
-    class Continent < SQLObject
-      has_many :kingdoms
-    end
-    
-  end
-
   describe '::assoc_options' do
     it 'defaults to empty hash' do
       class TempClass < SQLObject
@@ -213,7 +188,7 @@ describe 'Associatable' do
 
     it 'stores `belongs_to` options' do
       pet_assoc_options = Pet.assoc_options
-      human_options = pet_assoc_options[:human]
+      human_options = pet_assoc_options[:owner]
 
       expect(human_options).to be_instance_of(BelongsToOptions)
       expect(human_options.foreign_key).to eq(:owner_id)
@@ -222,24 +197,15 @@ describe 'Associatable' do
     end
 
     it 'stores options separately for each class' do
-      expect(Pet.assoc_options).to have_key(:human)
+      expect(Pet.assoc_options).to have_key(:owner)
       expect(Human.assoc_options).to_not have_key(:human)
 
       expect(Human.assoc_options).to have_key(:house)
-      expect(Pet.assoc_options).to_not have_key(:house)
     end
   end
-
+  
   describe '#has_one_through' do
-    before(:all) do
-      class Pet
-        has_one_through :house, :human, :house
-
-        self.finalize!
-      end
-    end
-
-    let(:nymeria) { Pet.find(1) }
+     let(:nymeria) { Pet.find(1) }
 
     it 'adds getter method' do
       expect(nymeria).to respond_to(:house)
@@ -254,5 +220,3 @@ describe 'Associatable' do
   end
 end
 
-
-end
