@@ -24,17 +24,13 @@ A Model that inherits from SQLObject will have the following class methods:
 
 ## Instance Methods
 
-Any model of a class inherited from SQLObject will have the following instance method:
-
-* save - Saves the model to the database. This either creates a new record in the model's table, or updates the record already there.
-
-In addition to this, it will have reader and writer methods for each column in its database table.
+Any model of a class inherited from SQLObject will have reader and writer methods for each column in its database table, as well as a method `save` that writes its local values to the database.
 
 # Associations
 
 There are three types of associations: belongs_to, has_one and has_many. These express the foreign key realtionships between the models. When an association is defined, it stores the information needed to construct a join table. Each association takes a name and an optional hash of options. It will add an instance method with the given name to its model.
 
-### The `belongs_to` Association
+## The `belongs_to` Association
 
 This supports the 'many' side of a one-step one-to-many relationship. It takes the following options:
 
@@ -44,7 +40,7 @@ This supports the 'many' side of a one-step one-to-many relationship. It takes t
 
 * `foreign_key` - The column in the other class that will be used for the join. This defaults to the association name with `'_id'` appended on the end.
 
-### The `has_one` Association
+## The `has_one` Association
 
 This supports either a one-to-one relatonship or the 'many' side of a multi-step one-to-many relationship. It can be used in two ways:
 
@@ -64,7 +60,7 @@ This supports either a one-to-one relatonship or the 'many' side of a multi-step
 
 Note that the chain of associations defined by a `has_one` with the `through` option must only contain other associations of the `belongs_to` or `has_one` type.
 
-### The `has_many` Association
+## The `has_many` Association
 
 This supports the 'one' side of a many-to-one relationship. (Currently only a single step one.) Its name should be plural. It has the following options:
 

@@ -1,13 +1,7 @@
-require_relative 'searchable'
 require 'active_support/inflector'
-require 'byebug'
 
 class AssocOptions
-  attr_accessor(
-    :foreign_key,
-    :class_name,
-    :primary_key,
-  )
+  attr_accessor :foreign_key, :class_name, :primary_key
 
   def model_class
     class_name.constantize
@@ -16,6 +10,19 @@ class AssocOptions
   def table_name
     model_class.table_name
   end
+end
+
+class ThroughOptions
+
+  attr_accessor :through, :source, :self_class
+
+  def initialize(name, self_class, options)
+    @through = options[:through]
+    @source = options[:source] || name.to_s.pluralize.to_sym
+    @self_class = self_class
+  end
+
+
 end
 
 class BelongsToOptions < AssocOptions
@@ -42,26 +49,14 @@ class HasManyOptions < AssocOptions
   end
 end
 
-class HasOneThroughOptions
-  attr_accessor :through, :source, :self_class
-  
-  def initialize(name, self_class, options)
-    @through = options[:through]
-    @source = options[:source] || name.pluralize
-    # through_class = self_class.assoc_options[through].class_name
-    # @class_name = through_class.constantize.assoc_options[source].class_name
-    @self_class = self_class
-  end
+class HasOneThroughOptions < ThroughOptions
   
   def class_name
     @through_class = self_class.assoc_options[through].class_name
     @class_name ||= through_class.constantize.assoc_options[source].class_name
-    # @class_name ||= self_class.assoc_options[source].class_name
   end
 
 end
-
-
 
 module Associatable
 
@@ -99,27 +94,45 @@ module Associatable
       has_one_through(name, options)
     else
 
-      ## put the one-step has-one here.
+      ho_options = HasOneOptions.new(name, self.name, options)
       
+      define_method(name.to_sym) do
+
+        their_table = ho_options.table_name
+        foreign_key = ho_options.foreign_key
+        primary_key = ho_options.primary_key
+        me = self.id
+        my_table = self.class.table_name
+
+        result = DBConnection.execute(<<-SQL)
+        SELECT
+          #{their_table}.*
+        FROM
+          #{their_table}
+        JOIN
+          #{my_table} ON #{my_table}.#{primary_key} = #{their_table}.#{foreign_key}
+        WHERE
+          #{my_table}.id = #{me}
+        LIMIT 1
+      SQL
+
+        result.first ? ho_options.model_class.new(result.first) : nil
+      end
     end
   end
 
   def has_many(name, options = {})
-    if options[:through]
-      has_many_through(name, options)
-
-    else
+    
+    hm_options = HasManyOptions.new(name, self.name, options)
+    
+    define_method(name.to_sym) do
+      their_table = hm_options.table_name
+      their_key = hm_options.foreign_key
+      my_key = hm_options.primary_key
+      me = self.id
+      my_table = self.class.table_name
       
-      hm_options = HasManyOptions.new(name, self.name, options)
-      
-      define_method(name.to_sym) do
-        their_table = hm_options.table_name
-        their_key = hm_options.foreign_key
-        my_key = hm_options.primary_key
-        me = self.id
-        my_table = self.class.table_name
-        
-        result = DBConnection.execute(<<-SQL)
+      result = DBConnection.execute(<<-SQL)
         SELECT
           #{their_table}.*
         FROM
@@ -130,14 +143,15 @@ module Associatable
           #{my_table}.id = #{me}
       SQL
 
-        result.map{ |result| hm_options.model_class.new(result)}
-      end
+      result.map{ |result| hm_options.model_class.new(result)}
     end
   end
 
   def assoc_options
     @assoc_options ||= {}
   end
+
+  private
   
   def has_one_through(name, options)
 

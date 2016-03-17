@@ -9,7 +9,7 @@ module Searchable
         FROM
           #{self.table_name}
         WHERE
-          #{params.map{|key, val| "#{key} = :#{val}"}.join(' AND ')}
+          #{params.map{|key, val| "#{key} = :#{key}"}.join(' AND ')}
       SQL
 
       results.map{|row_hash| self.new(row_hash)}

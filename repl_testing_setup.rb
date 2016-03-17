@@ -1,4 +1,4 @@
-require_relative './lib/associatable'
+require_relative './lib/sql_object'
 
 DBConnection.reset
 
@@ -17,6 +17,8 @@ class Human < SQLObject
   self.table_name = 'humans'
 
   has_many :pets, foreign_key: :owner_id
+  has_one :first_pet, class_name: "Pet", foreign_key: :owner_id
+  
   belongs_to :house
 
   has_one :kingdom, through: :house
@@ -41,6 +43,7 @@ class Kingdom < SQLObject
   belongs_to :continent
 
   finalize!
+  
 end
 
 class Continent < SQLObject
