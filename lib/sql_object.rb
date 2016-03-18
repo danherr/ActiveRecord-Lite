@@ -42,8 +42,6 @@ class SQLObject
     @table_name ||= self.name.downcase.pluralize
   end
 
-  # ::all: return an array of all the records in the DB
-
   def self.all
     DBConnection.execute(<<-SQL)
       SELECT
@@ -89,8 +87,6 @@ class SQLObject
     @attributes.values
   end
 
-  # insert: insert a new row into the table to represent the SQLObject.
-
   def insert
     vals = attribute_values
     col_string = "(#{attributes.keys.join(', ')})"
@@ -106,8 +102,6 @@ class SQLObject
 
     self.id = DBConnection.last_insert_row_id
   end
-
-  # update: update the row with the id of this SQLObject
 
   def update
     table = self.class.table_name
@@ -125,8 +119,6 @@ class SQLObject
         id = :id
     SQL
   end
-
-  # save: convenience method that either calls insert/update depending on whether or not the SQLObject already exists in the table.
 
   def save
     id ? update : insert
