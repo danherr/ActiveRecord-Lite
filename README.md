@@ -4,23 +4,23 @@ A lightweight ORM.
 
 # Outline
 
-The project itself is contained in the lib folder. In spec there are a number of automated tests of the basic functionality of the library. These make use of the testing database. This is a simple database defined and populated in 'test.sql' that contains some basic information for a few animals and humans from the 'Game of Thrones' universe.
+The project itself is contained in the lib folder. In spec there are a number of automated tests of the basic functionality of the library. These make use of the testing database. This is a simple database defined and populated in `test.sql` that contains some basic information for a few animals and humans from the 'Game of Thrones' universe.
 
-The file 'pry_testing_setup.rb' contains basic model defenitions for the tables in this database. In order to play with the models themselves, download the repo and load this file in a REPL. There will be a total of six models: 'Pet', 'Human', 'Species', 'Kingdom' and 'Continent'.  These have been connected via appropriate 'belongs_to' and 'has_many' connections. They have also been connected across multiple steps through 'has_one' connections - the only multi-step association that I've written so far.
+The file `pry_testing_setup.rb` contains basic model defenitions for the tables in this database. In order to play with the models themselves, download the repo and load this file in a REPL. There will be a total of six models: 'Pet', 'Human', 'Species', 'Kingdom' and 'Continent'.  These have been connected via appropriate `belongs_to` and `has_many` connections. They have also been connected across multiple steps through `has_one` connections - the only multi-step association that I've written so far.
 
 #SQLObject
 
-This is the base class for Models. A model will be connected to a database table whose name is a pluralized version of the model name. This can be overridden by setting the model's '.table_name' property manually.
+This is the base class for Models. A model will be connected to a database table whose name is a pluralized version of the model name. This can be overridden by setting the model's `.table_name` property manually.
 
 ## Class Methods
 
 A Model that inherits from SQLObject will have the following class methods:
 
-* all - Fetches the relevant table from the database, constructs a new object for each row, and returns them packaged in an array.
-* columns - Returns an array of symbols representing the column names in the relevant table.
-* find - Takes an id and returns a model for the record with that id.
-* new - Takes in a hash of attributes and creates a new model instance with these attributes.
-* where - Takes in a hash linking attributes to values, and returns an array of models corresponding to all records whose attributes match the linked values. 
+* `all` - Fetches the relevant table from the database, constructs a new object for each row, and returns them packaged in an array.
+* `columns` - Returns an array of symbols representing the column names in the relevant table.
+* `find` - Takes an id and returns a model for the record with that id.
+* `new` - Takes in a hash of attributes and creates a new model instance with these attributes.
+* `where` - Takes in a hash linking attributes to values, and returns an array of models corresponding to all records whose attributes match the linked values. 
 
 ## Instance Methods
 
@@ -28,7 +28,7 @@ Any model of a class inherited from SQLObject will have reader and writer method
 
 # Associations
 
-There are three types of associations: belongs_to, has_one and has_many. These express the foreign key realtionships between the models. When an association is defined, it stores the information needed to construct a join table. Each association takes a name and an optional hash of options. It will add an instance method with the given name to its model.
+There are three types of associations: `belongs_to`, `has_one` and `has_many`. These express the foreign key realtionships between the models. When an association is defined, it stores the information needed to construct a join table. Each association takes a name and an optional hash of options. It will add an instance method with the given name to its model.
 
 ## The `belongs_to` Association
 
